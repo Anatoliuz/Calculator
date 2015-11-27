@@ -12,7 +12,7 @@ char str[MAX];
 int sp = 0;
 int opPriority[256] = { ['('] = 0, ['+'] = 1, ['-'] = 1, ['*'] = 2, ['/'] = 2, ['^'] = 3 };
 char stack[MAX];
-long longs[MAX];
+double doubles[MAX];
 char pop(void) {
     if (sp > 0) {
         return stack[--sp];
@@ -26,7 +26,6 @@ char peek(void) {
     a--;
     if (a >= 0)
     {
-        printf("Peek: %c ", stack[a]);
         return stack[a];
     } else {
         fprintf(stderr, "Невозможно выполнить PEEK для пустого стека.\n");
@@ -47,30 +46,29 @@ int IsEmpty() {
     }
 }
 int np = 0;
-long popLong(void) {
+double popDouble(void) {
     if (np > 0) {
-        return longs[--np];
+        return doubles[--np];
     } else {
         fprintf(stderr, "Невозможно выполнить POP для пустого стека.\n");
         return 0;
     }
 };
-long peekLong(void) {
-    long a = np;
+double peekDouble(void) {
+    int a = np;
     a--;
     if (a >= 0)
     {
-        printf("Peek: %ld ", longs[a]);
-        return longs[a];
+        return doubles[a];
     } else {
-        fprintf(stderr, "Невозможно выполнить PEEK для пустого стекаLong.\n");
+        fprintf(stderr, "Невозможно выполнить PEEK для пустого стекаDouble.\n");
         return 0;
     }
 };
-void pushLong(long a) {
-    longs[np++] = a;
+void pushDouble(double a) {
+    doubles[np++] = a;
 };
-int IsEmptyLong() {
+int IsEmptyDouble() {
     if (np <=
         0)
         return 1;
@@ -94,15 +92,22 @@ char* Parse(char* mas,  int length)
     char op1;
     int curPriority = 0;
     int stackPriority = 0;
+    int dotFlag = 0;
     memset(str, 0, sizeof(str));
     for (int i = 0; i < length; ++i) {
         if (isspace(mas[i])) {
             printf("space\n");
         }
-        if(mas[i] >= '0' && mas[i] <= '9')
+        if(mas[i] >= '0' && mas[i] <= '9' )
         {
             str[jndex] = mas[i];
             jndex++;
+        }
+        else if (mas[i] == '.') //you should work out errors here (double number input)
+        {
+            str[jndex] = mas[i];
+            jndex++;
+            dotFlag++;
         }
         else if(mas[i] == '(')
         {
@@ -198,23 +203,23 @@ char* Parse(char* mas,  int length)
     }
     return str;
 }
-long Power(long a, long st)
+double Power(double a, double st)
 {
     if (st == 0) {
 
         return 1;
     }
-    long d = 1;
+    double d = 1;
     int i = 0;
     while (i < st ) {
         d*=a;
         i++;
     }
-    printf("Power %ld", d);
-    return a;
+    return d;
 }
-long DoInt(char* mas, int length)
+double DoDouble(char* mas, int length)
 {
+    double number = 0;
     char* masConverted;
     int allocLength = kInitialAllocationSize;
     int curLength = 0;
@@ -230,28 +235,17 @@ long DoInt(char* mas, int length)
         masConverted[j] = mas[i];
         j++;
     }
-    char *end;
-    long number = 0;
-    for (long i = strtol(masConverted, &end, 10);
-         masConverted != end;
-         i = strtol(masConverted, &end, 10))
-    {
-        masConverted = end;
-        if (errno == ERANGE){
-            printf("range error, got ");
-            errno = 0;
-        }
-        number = i;
-        
-    }
+    number = atof(masConverted);
     return number;
+
 }
 
 void Count(char* mas, int length)
 {
     char masToDoInt[200] = {} ;
-    long num = 0;
-   
+    double num = 0;
+    //memset(stack, 0 , sizeof(stack));
+
     for (int i = 0; i < length ; ++i)
     {
       int j  = 0;
@@ -264,61 +258,51 @@ void Count(char* mas, int length)
                 j++;
                 k++;
             }
-            num = DoInt(masToDoInt, k);
-            pushLong(num);
+            i=j;
+            num = DoDouble(masToDoInt, k);
+            pushDouble(num);
             k = 0;
             memset(masToDoInt, 0, sizeof(masToDoInt));
         }
-       else if (mas[i] == '+'){
-           pushLong(  popLong() + popLong() );
+       if (mas[i] == '+'){
+           pushDouble(  popDouble() + popDouble() );
        }
        else if (mas[i] == '-'){
-           pushLong(  -popLong() + popLong() );
+           pushDouble(  -popDouble() + popDouble() );
        }
        else if (mas[i] == '*'){
-           pushLong(  popLong() * popLong() );
+           pushDouble(  popDouble() * popDouble() );
        }
        else if (mas[i] == '/'){
-           long delimiter  = popLong();
-           pushLong(  popLong() / delimiter);
+           double delimiter  = popDouble();
+           pushDouble(  popDouble() / delimiter);
        }
        else if (mas[i] == '^'){
-           long st  = popLong();
-           long a = popLong();
-           pushLong(  Power(a , st) );
+           double st  = popDouble();
+           double a = popDouble();
+           double power = Power(a, st);
+           pushDouble(  power );
        }
     }
-    printf("void Peek is :%ld", peekLong()  );
+   // printf("void Peek is :%.3f", peekDouble()  );
 
 }
 int main()
 {
-    double n = atof("12.4");
-    printf("%.3f", n);
-    long g = 4;
-    long h = 8;
-    long c = g/h;
-    printf("a/b %ld", c);
-    Power(-4, 3);
-    char mas[] = "(8+2*5)/(1+3*2-4)";
-    char mas2[] = "3+4*2/(1-5)^2";
-    //Power(2, 0);
     int length = 0;
     int length2 = 0;
+  // double gg = DoDouble("73", 2);
+    //printf("%lf\n", gg);
+    char mas[] = "(89+277*35)/(21+34*22-44)";
+    char mas2[] = "(8+2*5)/(1+3*2-4)";
     memset(str, 0 , sizeof(str));
+    memset(doubles, 0,  sizeof(doubles));
     length = LengthOfMas(mas2);
     char* myStr = Parse(mas2, length);
-    //DoInt("123", 3);
     length2 = LengthOfMas(myStr);
-    for (int i = 0; i < length2 ; ++i) {
-        printf("OPN str: %c\n", myStr[i] );
-    }
-
-    Count(myStr, length2);
-    
+        Count(myStr, length2);
+    printf("%5.4lf", peekDouble());
  
-    long a = peekLong();
-    printf("%ld", a);
     return 0;
 }
 
